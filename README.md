@@ -26,10 +26,54 @@ If a user were to download the Bluemix Land app and start using it without loggi
 
 1.	An anonymous login creates a new user profile in App ID.
 2.	App ID generates an identity token and an access token.
-a.	The access token is valid for a 30 day period.
-b.	Logging in anonymously from the same device, with the same access token, extends its expiry by 30 days.
+  a.	The access token is valid for a 30 day period.
+  b.	Logging in anonymously from the same device, with the same access token, extends its expiry by 30 days.
 3.	Profile attributes can be accessed by using the access token. Tokens are held in appIDAuthorizationManager.
 
+Swift code:
+```swift
+ class delegate : AuthorizationDelegate {
+        public func onAuthorizationSuccess(accessToken: AccessToken, identityToken: IdentityToken, response:Response?) {
+          
+        }
+        
+        public func onAuthorizationCanceled() {
+           
+        }
+        
+        public func onAuthorizationFailure(error: AuthorizationError) {
+       
+        }
+    }
+
+
+AppID.sharedInstance.loginAnonymously(authorizationDelegate: delegate())
+```
+
+Android code:
+```java
+AppID.getInstance().loginAnonymously(getApplicationContext() , new AuthorizationListener() {
+            @Override
+            public void onAuthorizationFailure(AuthorizationException e) {
+                
+            }
+
+            @Override
+            public void onAuthorizationCanceled() {
+
+            }
+
+            @Override
+            public void onAuthorizationSuccess(AccessToken accessToken, IdentityToken identityToken) {
+
+            }
+        });
+```
+
+Node.js server side:
+```javascript
+app.get(CALLBACK_URL, passport.authenticate(WebAppStrategy.STRATEGY_NAME, {allowAnonymousLogin: true}));
+```
 
 ## The login widget
 
@@ -46,7 +90,25 @@ A user can give your app access to information, such as their name and profile p
 
 
 1.	The identity token contains the information received from the external identity provider.
-2.	The token is stored as IdentityToken in appIDAuthorizationManager.
+2.	The App ID SDK stores the token.
+
+Here we will demonstrate how to retrive the user's name and email from the token:
+
+Swift:
+```swift
+var email = idToken.email
+var name = idToken.name
+```
+Android:
+```java
+String name = idt.getName();
+String email = idt.getEmail();
+```
+Node:
+```javascript
+var email = req.user.email;
+var name = req.user.name;
+```
 
 ## Accessing attributes
 
