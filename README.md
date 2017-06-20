@@ -114,14 +114,75 @@ var name = req.user.name;
 
 In the sample, we asked users to tell us what kind of food they liked to eat – burgers, sandwiches, or pizza. Based on their answer, we can recommend restaurants they may enjoy during their time at Bluemix Land. Whether they are using the app anonymously or they have logged in, their selections are saved in their user profile. If they update their preferences, their new selections are saved.
 
+Here is an example of how to get and set an attribute value:
+
+Swift:
+```swift
+AppID.sharedInstance.userAttributeManager?.getAttributes(completionHandler: { (error, attributes) in
+        guard error == nil else {
+            // handle error
+            return
+        }
+        self.updateUI()
+        
+    })
+    
+AppID.sharedInstance.userAttributeManager?.setAttribute(key: "points", value: "150", completionHandler: { (error, attributes) in
+        guard error == nil else {
+            print("Failed to save points", error!)
+            return
+        }
+        self.updateUI()
+     })
+```
+Android:
+```java
+      appID.getUserAttributeManager().getAttribute(ATTR_BONUS_POINTS, new UserAttributeResponseListener() {
+            @Override
+            public void onSuccess(JSONObject attributes) {
+                showBonusPoints(attributes.optString(ATTR_BONUS_POINTS), false);
+            }
+
+            @Override
+            public void onFailure(UserAttributesException e) {
+              // handle failure
+            }
+        });
+        
+                appID.getUserAttributeManager().setAttribute(ATTR_BONUS_POINTS, String.valueOf(LOGGING_IN_BONUS), new UserAttributeResponseListener() {
+            @Override
+            public void onSuccess(JSONObject attributes) {
+                showBonusPoints(attributes.optString(ATTR_BONUS_POINTS), true);
+            }
+
+            @Override
+            public void onFailure(UserAttributesException e) {
+                // handle failure
+            }
+        });
+```
+
+Node:
+```javascript
+        var accessToken = req.session[WebAppStrategy.AUTH_CONTEXT].accessToken;
+        
+         userAttributeManager.getAttribute(accessToken, "points").then(function (attributes) {
+            res.render('protected', renderOptions);
+         });
+        
+        userAttributeManager.setAttribute(accessToken, "points", "150").then(function (attributes) {
+            res.render('protected', renderOptions);
+         });
+```
+
 ## Progressive authentication
 
 Progressive authentication occurs when a user begins as an anonymous user and then logs in for the first time by using an identity provider.
 
 1.	The App Id SDK sends a request to login with an anonymous access token.
 2.	The service attempts to find a profile for an identity received from an identity provider.
-a.	If a profile exists, the service returns an access token for the identified profile.
-b.	If no profile is found, the anonymous profile is assigned the anonymous access token.
+  a.	If a profile exists, the service returns an access token for the identified profile.
+  b.	If no profile is found, the anonymous profile is assigned the anonymous access token.
 
 
 
