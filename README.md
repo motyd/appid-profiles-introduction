@@ -195,11 +195,66 @@ You may want to store an anonymous users access token so that their selections a
 
 The token is stored in the shared preferences using “private” mode. This does not protect it from being read on a rooted device. Since identity tokens contain private information, we store only the access token, which has a short expiry time.
 
+```java
+    public void persistTokensOnDevice(){
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(APPID_TOKENS_PREF, ctx.MODE_PRIVATE);
+        AccessToken accessToken = appIDAuthorizationManager.getAccessToken();
+        IdentityToken identityToken = appIDAuthorizationManager.getIdentityToken();
+
+        String storedAccessToken = accessToken == null ? null : accessToken.getRaw();
+        sharedPreferences.edit().
+                putString(APPID_ACCESS_TOKEN, storedAccessToken).
+                commit();
+    }
+
+    public String getStoredAccessToken(){
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(APPID_TOKENS_PREF, ctx.MODE_PRIVATE);
+        return sharedPreferences.getString(APPID_ACCESS_TOKEN, null);
+    }
+```
+
 ### For iOS:
 
 A keychain is used to store the access token. The keychain offers develops extra security features, such as forcing the user to supply a fingerprint to retrieve data.
 
-
+```swift
+    public func storeToken(token: String?) {
+        save(key: tokenServiceName + tenantId!, value: token)
+    }
+    
+    public func loadStoredToken() -> String? {
+        return load(key: tokenServiceName + tenantId!)
+    }
+    
+    private func save(key: String, value: String?) {
+        var kcq : [String:Any] = [:]
+        kcq[kSecClass as String] = kSecClassGenericPassword
+        kcq[kSecAttrService as String] = key
+        
+        SecItemDelete(kcq as CFDictionary)
+        
+        if value != nil {
+            kcq[kSecValueData as String] = value!.data(using: .utf8)!
+            SecItemAdd(kcq as CFDictionary, nil)
+        }
+    }
+    
+    private func load(key: String) -> String? {
+        var kcq : [String:Any] = [:]
+        kcq[kSecClass as String] = kSecClassGenericPassword
+        kcq[kSecAttrService as String] = key
+        kcq[kSecReturnData as String] = kCFBooleanTrue
+        kcq[kSecMatchLimit as String] = kSecMatchLimitOne
+        
+        var dataRef : AnyObject?
+        let status = SecItemCopyMatching(kcq as CFDictionary, &dataRef)
+        let data = dataRef as? Data
+        if status == errSecSuccess && data != nil {
+            return String(data: data!, encoding: .utf8)
+        }
+        return nil
+    }
+```
 ## Associating external information with a user
 
 You can associate information not managed or stored in App ID with a user profile.
